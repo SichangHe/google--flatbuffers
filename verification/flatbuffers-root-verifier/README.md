@@ -1,0 +1,29 @@
+root verifier experiment
+
+- base: `81edeb17d9118143f2c81caf27edfb0df401279e`
+- production scope
+  - `rust/flatbuffers/src/get_root.rs::root_with_opts`
+  - `rust/flatbuffers/src/verifier.rs::<ForwardsUOffset<T> as Verifiable>::run_verifier`
+- specialization
+  - default verifier options
+  - root position zero
+  - one-byte target verifier
+- oracle
+  - the input has a four-byte little-endian root offset
+  - the decoded position is strictly below the input length
+- proof claim
+  - the `u32` root offset cannot saturate host `u64` root-position arithmetic
+  - the production range transition is equivalent to the oracle
+  - an accepted position is safe for the specialized unchecked follow
+- host binding
+  - `host` calls pinned production `root_with_opts::<Probe>`
+  - it exhausts small lengths and offsets, then samples deterministic full-width offsets
+- excluded
+  - primitive little-endian decode and unsafe slice-read correctness
+  - arbitrary target verifier behavior
+  - table, vtable, vector, string, size-prefix, generated-schema, builder, and end-to-end semantics
+- verify
+  - `verus proof/root_transition.rs --no-cheating --time --output-json --compile`
+  - `cargo fmt --manifest-path host/Cargo.toml --check`
+  - `cargo clippy --locked --manifest-path host/Cargo.toml --all-targets -- -D warnings`
+  - `cargo run --release --locked --manifest-path host/Cargo.toml`
